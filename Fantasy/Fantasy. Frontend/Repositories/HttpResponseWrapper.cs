@@ -1,6 +1,6 @@
 ﻿using System.Net;
 
-namespace Fantasy._Frontend.Repositories;
+namespace Fantasy.Frontend.Repositories;
 
 // clase para embolber respuestas genericas tipo t para utilizar con el IRepository Frontend
 public class HttpResponseWrapper<T>
