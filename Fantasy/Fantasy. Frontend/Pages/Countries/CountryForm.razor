@@ -1,0 +1,25 @@
+﻿<!-- Bloquea la navegación si el formulario ha sido modificado y no se ha guardado. -->
+<NavigationLock OnBeforeInternalNavigation="OnBeforeInternalNavigation" />
+
+<!-- Formulario de edición con validación. -->
+<EditForm EditContext="editContext" OnValidSubmit="OnValidSubmit">
+    <!-- Habilita la validación basada en atributos de validación. -->
+    <DataAnnotationsValidator />
+
+    <!-- Campo para el nombre del país. -->
+    <div class="mb-3">
+        <label>@Localizer["Country"]:</label> <!-- Etiqueta del campo. -->
+        <div>
+            <!-- Input para el nombre del país. -->
+            <InputText class="form-control" @bind-Value="@Country.Name" />
+            <!-- Mensaje de validación para el campo Name. -->
+            <ValidationMessage For="@(() => Country.Name)" />
+        </div>
+    </div>
+
+    <!-- Botón para guardar los cambios. -->
+    <button class="btn btn-primary" type="submit">@Localizer["SaveChanges"]</button>
+    <!-- Botón para regresar sin guardar cambios. -->
+    <button class="btn btn-success" @onclick="ReturnAction">@Localizer["Return"]</button>
+</EditForm>
+

@@ -1,0 +1,34 @@
+﻿@typeparam Titem
+
+@if (MyList is null)
+{
+    //Muestra un indicador de carga (Loading). Si no se proporciona un RenderFragment personalizado,
+    //muestra una imagen de carga por defecto.
+    @if (Loading is null)
+    {
+        <Loading />
+    }
+    else
+    {
+        @Loading
+    }
+}
+else if (MyList.Count == 0)
+{
+    //Muestra un mensaje de "No hay registros" (NoRecords). 
+    //Si no se proporciona un RenderFragment personalizado, muestra un mensaje por defecto.
+    @if (NoRecords is null)
+    {
+        <p>@Localizer["NoRecords"]</p>
+    }
+    else
+    {
+        @NoRecords
+    }
+}
+else
+//Renderiza el contenido del Body, que define cómo se muestran los datos.
+{
+    @Body
+}
+
