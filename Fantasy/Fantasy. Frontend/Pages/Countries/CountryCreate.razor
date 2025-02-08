@@ -1,6 +1,7 @@
-﻿@page "/countries/create"
+﻿@page "/countries/create" 
+<!-- Ruta para crear un nuevo país. -->
 
 <h3>@Localizer["Create"] @Localizer["Country"]</h3>
 
+<!-- Componente CountryForm para mostrar el formulario. -->
 <CountryForm @ref="countryForm" Country="country" OnValidSubmit="CreateAsync" ReturnAction="Return" />
-
