@@ -9,7 +9,7 @@ public class GenericUnitOfWork<T> : IGenericUnitOfWork<T> where T : class
 {
     private readonly IGenericRepository<T> _repository;
 
-    // ctor para hacer uso de los vervos del repositorio generico y sus verbos
+    // ctor para hacer uso de los verbos del repositorio generico y sus metodos
     public GenericUnitOfWork(IGenericRepository<T> repository)
     {
         _repository = repository;

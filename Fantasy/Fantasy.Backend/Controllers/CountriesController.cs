@@ -11,8 +11,45 @@ namespace Fantasy.Backend.Controllers;
 [Route("api/[controller]")]
 public class CountriesController : GenericController<Country>
 {
-    public CountriesController(IGenericUnitOfWork<Country> unit) : base(unit)
+    // 2. generamos como campo(ICountriesUnitOfWork _countriesUnitOfWork) para utilizarlo en toda la solucion
+    private readonly ICountriesUnitOfWork _countriesUnitOfWork;
+
+    //1. Ctor donde inyectamos  la interfaz(IGenericUnitOfWork) y lo especificamos la entidad (Country)
+    // y la interfaz (ICountriesUnitOfWork countriesUnitOfWork) encargada de orquestar el repositorio especifico donde esta la logica y operaciones de los verbos
+    public CountriesController(IGenericUnitOfWork<Country> unit, ICountriesUnitOfWork countriesUnitOfWork) : base(unit)
     {
+        _countriesUnitOfWork = countriesUnitOfWork;
+    }
+
+    // 4. Sobre escribimos los meotodos que necesitamos
+    [HttpGet]
+    public override async Task<IActionResult> GetAsync()
+    {
+        var response = await _countriesUnitOfWork.GetAsync();
+        if (response.WasSuccess)
+        {
+            return Ok(response.Result);
+        }
+        return BadRequest();
+    }
+
+    [HttpGet("{id}")]
+    public override async Task<IActionResult> GetAsync(int id)
+    {
+        var response = await _countriesUnitOfWork.GetAsync(id);
+        if (response.WasSuccess)
+        {
+            return Ok(response.Result);
+        }
+        return NotFound(response.Message);
+    }
+
+    // 3. Implementamos los meotodos especificos
+
+    [HttpGet("combo")]
+    public async Task<IActionResult> GetComboAsync()
+    {
+        return Ok(await _countriesUnitOfWork.GetComboAsync());
     }
 }
 
