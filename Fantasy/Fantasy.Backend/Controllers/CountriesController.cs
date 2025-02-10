@@ -15,7 +15,7 @@ public class CountriesController : GenericController<Country>
     private readonly ICountriesUnitOfWork _countriesUnitOfWork;
 
     //1. Ctor donde inyectamos  la interfaz(IGenericUnitOfWork) y lo especificamos la entidad (Country)
-    // y la interfaz (ICountriesUnitOfWork countriesUnitOfWork) encargada de orquestar el repositorio especifico donde esta la logica y operaciones de los verbos
+    // y la interfaz (ICountriesUnitOfWork countriesUnitOfWork) encargada de orquestar la unidad repositorio especifico donde esta la logica y operaciones de los verbos
     public CountriesController(IGenericUnitOfWork<Country> unit, ICountriesUnitOfWork countriesUnitOfWork) : base(unit)
     {
         _countriesUnitOfWork = countriesUnitOfWork;
