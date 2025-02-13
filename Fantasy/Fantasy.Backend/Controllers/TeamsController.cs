@@ -9,6 +9,7 @@ namespace Fantasy.Backend.Controllers;
 [Route("api/[controller]")]
 public class TeamsController : GenericController<Team>
 {
+    // 3. generamos como campo el teamsUnitOfWork y le cambiamos el nombre _teamsUnitOfWork
     private readonly ITeamsUnitOfWork _teamsUnitOfWork;
 
     public TeamsController(IGenericUnitOfWork<Team> unitOfWork, ITeamsUnitOfWork teamsUnitOfWork) : base(unitOfWork)
