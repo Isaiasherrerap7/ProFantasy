@@ -1,4 +1,5 @@
 using Fantasy.Backend.Data;
+using Fantasy.Backend.Helpers;
 using Fantasy.Backend.Repositories.Implementations;
 using Fantasy.Backend.Repositories.Interfaces;
 using Fantasy.Backend.UnitsOfWork.Implementations;
@@ -17,12 +18,19 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddDbContext<DataContext>(x => x.UseSqlServer("name=LocalConnection"));
 // intectar el seeddb para crear la base de datos y paises automatico
 builder.Services.AddTransient<SeedDb>();
+
+// Storage de azure donde guarda las banderas y escudos
+builder.Services.AddScoped<IFileStorage, FileStorage>();
+
 // Servicios unidad de trabajo y repository genrico
 builder.Services.AddScoped(typeof(IGenericUnitOfWork<>), typeof(GenericUnitOfWork<>));
 builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
 // Servicios unidad de trabajo y repository de countries
 builder.Services.AddScoped<ICountriesRepository, CountriesRepository>();
 builder.Services.AddScoped<ICountriesUnitOfWork, CountriesUnitOfWork>();
+// Servicios unidad de trabajo y repository de teams
+builder.Services.AddScoped<ITeamsRepository, TeamsRepository>();
+builder.Services.AddScoped<ITeamsUnitOfWork, TeamsUnitOfWork>();
 
 var app = builder.Build();
 

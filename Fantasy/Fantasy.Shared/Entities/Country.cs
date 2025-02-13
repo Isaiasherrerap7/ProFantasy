@@ -12,9 +12,9 @@ public class Country
     [Required(ErrorMessageResourceName = "RequiredField", ErrorMessageResourceType = typeof(Literals))]
     public string Name { get; set; } = null!;
 
-    // un pais tiene varios equipos
+    // un pais tiene una coleccion de varios equipos
     public ICollection<Team>? Teams { get; set; }
 
-    // Propiedad de lectura solo se puede optener
+    // Propiedad de lectura solo se puede optener Es una propiedad calculada que devuelve la cantidad de equipos asociados a un país.
     public int TeamsCount => Teams == null ? 0 : Teams.Count;
 }

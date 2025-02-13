@@ -6,9 +6,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Fantasy.Shared.Entities;
+namespace Fantasy.Shared.DTOs;
 
-public class Team
+public class TeamDTO
 {
     public int Id { get; set; }
 
@@ -17,11 +17,9 @@ public class Team
     [Required(ErrorMessageResourceName = "RequiredField", ErrorMessageResourceType = typeof(Literals))]
     public string Name { get; set; } = null!;
 
+    [Display(Name = "Image", ResourceType = typeof(Literals))]
     public string? Image { get; set; }
 
-    // Un equipo pertenece a un pais
-    public Country? Country { get; set; }
-
-    // Es la clave foránea que relaciona un equipo con un país.
+    [Display(Name = "Country", ResourceType = typeof(Literals))]
     public int CountryId { get; set; }
 }

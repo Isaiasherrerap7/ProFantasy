@@ -18,7 +18,7 @@ public class DataContext : DbContext
         base.OnModelCreating(modelBuilder);
         //Metodo para no repetir el nombre mediante indice unico
         modelBuilder.Entity<Country>().HasIndex(x => x.Name).IsUnique();
-        // Metodo compuesto
+        // Metodo compuesto Esto asegura que no haya dos equipos con el mismo nombre dentro del mismo país, pero sí pueden existir equipos con el mismo nombre en diferentes países.
         modelBuilder.Entity<Team>().HasIndex(x => new { x.CountryId, x.Name }).IsUnique();
         // metodo para que no borre en cascada
         DisableCascadingDelete(modelBuilder);
