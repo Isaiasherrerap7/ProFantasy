@@ -16,7 +16,9 @@ public partial class CountriesIndex
     // Inyecta para acceder a los literales de los nombre de titulos en idioma ingles y español
     [Inject] private IStringLocalizer<Literals> Localizer { get; set; } = null!;
 
+    // permite controlar la navegación en Blazor
     [Inject] private NavigationManager NavigationManager { get; set; } = null!;
+
     [Inject] private SweetAlertService SweetAlertService { get; set; } = null!;
 
     // Prop lista de country puede ser nulo puede no a ver datos

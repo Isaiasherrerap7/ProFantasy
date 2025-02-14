@@ -24,4 +24,7 @@ public class Team
 
     // Es la clave foránea que relaciona un equipo con un país.
     public int CountryId { get; set; }
+
+    // prop de lectura si no ecnuentra una image poner la poder defecto
+    public string ImageFull => string.IsNullOrEmpty(Image) ? "/images/NoImage.png" : Image;
 }
