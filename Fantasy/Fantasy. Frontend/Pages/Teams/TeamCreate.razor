@@ -1,0 +1,18 @@
+﻿@page "/teams/create"
+
+<!-- Define la ruta para esta página de creación de equipos: "/teams/create" -->
+<h3>@Localizer["Create"] @Localizer["Team"]</h3>
+<!-- Encabezado que muestra un mensaje de "Crear Equipo" usando literales traducibles -->
+<!--
+    Utiliza el componente TeamForm que encapsula toda la lógica de un formulario para
+    crear o editar un equipo.
+    - @ref="teamForm": Crea una referencia para poder interactuar con el componente desde el código subyacente.
+    - TeamDTO="teamDTO": Vincula el modelo de datos (TeamDTO) con el formulario.
+    - OnValidSubmit="CreateAsync": Define el método que se ejecuta cuando el formulario se valida y se envía correctamente.
+    - ReturnAction="Return": Acción que se llama al hacer clic en "Return" (volver), normalmente para navegar a otra página.
+-->
+<TeamForm @ref="teamForm"
+          TeamDTO="teamDTO"
+          OnValidSubmit="CreateAsync"
+          ReturnAction="Return" />
+
