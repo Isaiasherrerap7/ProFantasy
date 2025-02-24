@@ -1,5 +1,6 @@
 ﻿using Fantasy.Backend.Data;
 using Fantasy.Backend.UnitsOfWork.Interfaces;
+using Fantasy.Shared.DTOs;
 using Fantasy.Shared.Entities;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -19,6 +20,19 @@ public class CountriesController : GenericController<Country>
     public CountriesController(IGenericUnitOfWork<Country> unit, ICountriesUnitOfWork countriesUnitOfWork) : base(unit)
     {
         _countriesUnitOfWork = countriesUnitOfWork;
+    }
+
+    // otros override
+
+    [HttpGet("paginated")]
+    public override async Task<IActionResult> GetAsync(PaginationDTO pagination)
+    {
+        var response = await _countriesUnitOfWork.GetAsync(pagination);
+        if (response.WasSuccess)
+        {
+            return Ok(response.Result);
+        }
+        return BadRequest();
     }
 
     // 4. Sobre escribimos los meotodos que necesitamos
@@ -42,6 +56,17 @@ public class CountriesController : GenericController<Country>
             return Ok(response.Result);
         }
         return NotFound(response.Message);
+    }
+
+    [HttpGet("totalRecordsPaginated")]
+    public async Task<IActionResult> GetTotalRecordsAsync([FromQuery] PaginationDTO pagination)
+    {
+        var action = await _countriesUnitOfWork.GetTotalRecordsAsync(pagination);
+        if (action.WasSuccess)
+        {
+            return Ok(action.Result);
+        }
+        return BadRequest();
     }
 
     // 3. Implementamos los meotodos especificos

@@ -1,5 +1,7 @@
 ﻿using Fantasy.Backend.Data;
+using Fantasy.Backend.Helpers;
 using Fantasy.Backend.Repositories.Interfaces;
+using Fantasy.Shared.DTOs;
 using Fantasy.Shared.Entities;
 using Fantasy.Shared.Responses;
 using Microsoft.EntityFrameworkCore;
@@ -48,6 +50,7 @@ public class CountriesRepository : GenericRepository<Country>, ICountriesReposit
     {
         var countries = await _context.Countries
             .Include(x => x.Teams)
+            .OrderBy(x => x.Name)
             .ToListAsync();
         return new ActionResponse<IEnumerable<Country>>
         {
@@ -63,5 +66,57 @@ public class CountriesRepository : GenericRepository<Country>, ICountriesReposit
         return await _context.Countries
             .OrderBy(x => x.Name)
             .ToListAsync();
+    }
+
+    public override async Task<ActionResponse<IEnumerable<Country>>> GetAsync(PaginationDTO pagination)
+    {
+        // Construye una consulta básica para obtener países,
+        // incluyendo la colección de Teams asociada.
+        var queryable = _context.Countries
+            .Include(x => x.Teams)
+            .AsQueryable();
+
+        // Si se especifica un filtro, aplica un "Where"
+        // para buscar países cuyo nombre contenga el texto indicado.
+        if (!string.IsNullOrWhiteSpace(pagination.Filter))
+        {
+            queryable = queryable.Where(x => x.Name.ToLower().Contains(pagination.Filter.ToLower()));
+        }
+
+        // Retorna una respuesta de tipo ActionResponse<IEnumerable<Country>>,
+        // marcando la operación como exitosa (WasSuccess = true).
+        // Además, utiliza el método de extensión Paginate para aplicar ordenación (OrderBy por nombre)
+        // y paginación (Skip y Take en base a la página y el tamaño de página).
+        return new ActionResponse<IEnumerable<Country>>
+        {
+            WasSuccess = true,
+            Result = await queryable
+                .OrderBy(x => x.Name)
+                .Paginate(pagination) // Salta los registros anteriores y toma los solicitados
+                .ToListAsync()        // Convierte el resultado en lista asíncronamente
+        };
+    }
+
+    public async Task<ActionResponse<int>> GetTotalRecordsAsync(PaginationDTO pagination)
+    {
+        // Construye una consulta para contar cuántos países hay,
+        // aplicando el mismo filtro si existe.
+        var queryable = _context.Countries.AsQueryable();
+
+        // Si se especifica un filtro, aplica el "Where" correspondiente.
+        if (!string.IsNullOrWhiteSpace(pagination.Filter))
+        {
+            queryable = queryable.Where(x => x.Name.ToLower().Contains(pagination.Filter.ToLower()));
+        }
+
+        // Cuenta de manera asíncrona el número de registros que cumple la condición
+        double count = await queryable.CountAsync();
+
+        // Regresa la cantidad en una ActionResponse<int>.
+        return new ActionResponse<int>
+        {
+            WasSuccess = true,
+            Result = (int)count
+        };
     }
 }

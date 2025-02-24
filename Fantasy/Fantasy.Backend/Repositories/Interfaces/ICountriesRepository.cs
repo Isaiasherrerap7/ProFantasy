@@ -1,4 +1,5 @@
-﻿using Fantasy.Shared.Entities;
+﻿using Fantasy.Shared.DTOs;
+using Fantasy.Shared.Entities;
 using Fantasy.Shared.Responses;
 
 namespace Fantasy.Backend.Repositories.Interfaces;
@@ -9,9 +10,14 @@ public interface ICountriesRepository
     // traer pais por paramtrero
     Task<ActionResponse<Country>> GetAsync(int id);
 
-    // traer paies por paramtrero
+    // traer paieses
     Task<ActionResponse<IEnumerable<Country>>> GetAsync();
 
     // Combo de equipo
     Task<IEnumerable<Country>> GetComboAsync();
+
+    //  Lista de paginacion
+    Task<ActionResponse<IEnumerable<Country>>> GetAsync(PaginationDTO pagination);
+
+    Task<ActionResponse<int>> GetTotalRecordsAsync(PaginationDTO pagination);
 }

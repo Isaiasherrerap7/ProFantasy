@@ -24,13 +24,18 @@ public class TeamsUnitOfWork : GenericUnitOfWork<Team>, ITeamsUnitOfWork
     // 7.establecemos que los metodos no sean los genericos si no los de la logica del repository espeficico (teamsRepository)
     // inyectar el repository y la unitofwork en el program
     //9. ya puedo crear la api con el contexto de (TeamsUnitOfWork)
+
+    public override async Task<ActionResponse<IEnumerable<Team>>> GetAsync() => await _teamsRepository.GetAsync();
+
+    public override async Task<ActionResponse<Team>> GetAsync(int id) => await _teamsRepository.GetAsync(id);
+
+    public override async Task<ActionResponse<IEnumerable<Team>>> GetAsync(PaginationDTO pagination) => await _teamsRepository.GetAsync(pagination);
+
+    public async Task<ActionResponse<int>> GetTotalRecordsAsync(PaginationDTO pagination) => await _teamsRepository.GetTotalRecordsAsync(pagination);
+
     public async Task<ActionResponse<Team>> AddAsync(TeamDTO teamDTO) => await _teamsRepository.AddAsync(teamDTO);
 
     public async Task<IEnumerable<Team>> GetComboAsync(int countryId) => await _teamsRepository.GetComboAsync(countryId);
 
     public async Task<ActionResponse<Team>> UpdateAsync(TeamDTO teamDTO) => await _teamsRepository.UpdateAsync(teamDTO);
-
-    public override async Task<ActionResponse<Team>> GetAsync(int id) => await _teamsRepository.GetAsync(id);
-
-    public override async Task<ActionResponse<IEnumerable<Team>>> GetAsync() => await _teamsRepository.GetAsync();
 }
