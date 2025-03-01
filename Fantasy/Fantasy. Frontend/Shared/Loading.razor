@@ -1,3 +1,14 @@
-﻿<div class="d-flex justify-content-center align-items-center">
-    <img src="https://www.wpfaster.org/wp-content/uploads/2013/06/loading-gif.gif" width="200" height="200" />
-</div>
+﻿<!-- Tarjeta que contiene el indicador de carga -->
+<MudCard>
+    <!-- Capa superpuesta con diseño centrado para mostrar la animación de carga -->
+    <div class="overlay d-flex flex-column justify-content-center align-items-center p-3">
+        <!-- Indicador de progreso circular en estado indeterminado -->
+        <MudProgressCircular Indeterminate="true" Color="Color.Primary" Class="mb-3" />
+
+        <!-- Texto que muestra el mensaje de carga -->
+        <MudText Typo="Typo.h5">@Label</MudText>
+    </div>
+</MudCard>
+
+
+

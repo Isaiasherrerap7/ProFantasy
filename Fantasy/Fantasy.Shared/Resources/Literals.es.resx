@@ -101,7 +101,7 @@
     <value>Fantasy</value>
   </data>
   <data name="Subtitle" xml:space="preserve">
-    <value>Aplicación de pronósticos</value>
+    <value>Aplicación ISLA</value>
   </data>
   <data name="About" xml:space="preserve">
     <value>Acerca de</value>
@@ -374,7 +374,7 @@
     <value>Comentarios</value>
   </data>
   <data name="ERR009" xml:space="preserve">
-    <value>El código de torneo no es válido.</value>
+    <value>El código de torneo no es válido</value>
   </data>
   <data name="TournamentActive" xml:space="preserve">
     <value>El torneo está activo</value>
@@ -506,7 +506,7 @@
     <value>-- Seleccione un Torneo --</value>
   </data>
   <data name="GroupCreated" xml:space="preserve">
-    <value>Se ha creado el grupo: {0}, con el código: {1}, por favor envíe el código del grupo a las personas que deseen uniserse a este grupo.</value>
+    <value>Se ha creado el grupo: {0}, con el código: {1}, por favor envíe el código del grupo a las personas que deseen ingresar a este grupo</value>
   </data>
   <data name="Active" xml:space="preserve">
     <value>Activo</value>

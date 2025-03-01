@@ -1,13 +1,17 @@
-﻿@page "/countries/edit/{Id:int}"
-
-<h3>@Localizer["Edit"] @Localizer["Country"]</h3>
-
-@if (country is null)
+﻿@if (country is null)
 {
+    // Muestra un componente de carga mientras se obtiene la información del país.
     <Loading />
 }
 else
 {
-    <CountryForm @ref="countryForm" Country="country" OnValidSubmit="EditAsync" ReturnAction="Return" />
+    // Muestra un diálogo modal con el formulario de edición del país.
+    <MudDialog>
+        <DialogContent>
+            <!-- Formulario de edición del país. -->
+            <CountryForm @ref="countryForm" Country="country" OnValidSubmit="EditAsync" ReturnAction="Return" />
+        </DialogContent>
+    </MudDialog>
 }
+
 

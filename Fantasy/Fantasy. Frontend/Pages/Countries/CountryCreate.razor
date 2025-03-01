@@ -1,7 +1,12 @@
-﻿@page "/countries/create" 
-<!-- Ruta para crear un nuevo país. -->
-
-<h3>@Localizer["Create"] @Localizer["Country"]</h3>
-
-<!-- Componente CountryForm para mostrar el formulario. -->
-<CountryForm @ref="countryForm" Country="country" OnValidSubmit="CreateAsync" ReturnAction="Return" />
+﻿<!-- Diálogo de MudBlazor que contiene el formulario para crear un nuevo país -->
+<MudDialog>
+    <DialogContent>
+        <!-- Componente reutilizable CountryForm para manejar el formulario de creación -->
+        <!-- Se le pasan las siguientes propiedades:
+             - @ref="countryForm": Referencia al formulario para poder acceder a sus métodos o propiedades
+             - Country="country": Se asocia el objeto 'country' que se va a crear
+             - OnValidSubmit="CreateAsync": Acción que se ejecuta cuando el formulario se envía correctamente
+             - ReturnAction="Return": Método que se llama al cancelar o regresar -->
+        <CountryForm @ref="countryForm" Country="country" OnValidSubmit="CreateAsync" ReturnAction="Return" />
+    </DialogContent>
+</MudDialog>

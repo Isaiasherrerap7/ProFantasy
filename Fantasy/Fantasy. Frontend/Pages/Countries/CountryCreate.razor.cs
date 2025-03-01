@@ -4,6 +4,7 @@ using Fantasy.Shared.Entities;
 using Fantasy.Shared.Resources;
 using Microsoft.AspNetCore.Components;
 using Microsoft.Extensions.Localization;
+using MudBlazor;
 
 namespace Fantasy.Frontend.Pages.Countries;
 
@@ -15,44 +16,37 @@ public partial class CountryCreate
     // Instancia del objeto Country que se va a crear.
     private Country country = new();
 
-    // Servicio de repositorio para realizar solicitudes HTTP al backend.
+    // Inyección del servicio de repositorio para realizar solicitudes HTTP al backend.
     [Inject] private IRepository Repository { get; set; } = null!;
 
-    // Servicio de navegación para redirigir a otras páginas.
+    // Inyección del servicio de navegación para redirigir a otras páginas.
     [Inject] private NavigationManager NavigationManager { get; set; } = null!;
 
-    // Servicio de SweetAlert2 para mostrar alertas y mensajes.
-    [Inject] private SweetAlertService SweetAlertService { get; set; } = null!;
+    // Inyección del servicio de notificaciones tipo Snackbar.
+    [Inject] private ISnackbar Snackbar { get; set; } = null!;
 
-    // Servicio de localización para manejar textos en diferentes idiomas.
+    // Inyección del servicio de localización para manejar textos en diferentes idiomas.
     [Inject] private IStringLocalizer<Literals> Localizer { get; set; } = null!;
 
-    // Método para crear un nuevo país.
+    // Método para crear un nuevo país en el backend.
     private async Task CreateAsync()
     {
         // Envía una solicitud POST al backend para crear el país.
         var responseHttp = await Repository.PostAsync("/api/countries", country);
 
-        // Si hay un error, muestra un mensaje de error.
+        // Si la respuesta contiene un error, muestra un mensaje en el Snackbar.
         if (responseHttp.Error)
         {
             var message = await responseHttp.GetErrorMessageAsync();
-            await SweetAlertService.FireAsync(Localizer["Error"], Localizer[message!]);
+            Snackbar.Add(Localizer[message], Severity.Error);
             return;
         }
 
         // Si la solicitud es exitosa, redirige a la lista de países.
         Return();
 
-        // Muestra un mensaje de éxito.
-        var toast = SweetAlertService.Mixin(new SweetAlertOptions
-        {
-            Toast = true, // Muestra el mensaje como un toast.
-            Position = SweetAlertPosition.BottomEnd, // Posición del toast.
-            ShowConfirmButton = true, // Muestra un botón de confirmación.
-            Timer = 3000 // Duración del toast.
-        });
-        await toast.FireAsync(icon: SweetAlertIcon.Success, message: Localizer["RecordCreatedOk"]);
+        // Muestra una notificación de éxito.
+        Snackbar.Add(Localizer["RecordCreatedOk"], Severity.Success);
     }
 
     // Método para regresar a la lista de países.
@@ -61,7 +55,7 @@ public partial class CountryCreate
         // Indica que el formulario se envió correctamente.
         countryForm!.FormPostedSuccessfully = true;
 
-        // Redirige a la lista de países.
+        // Redirige a la página de países.
         NavigationManager.NavigateTo("/countries");
     }
 }

@@ -1,37 +1,82 @@
 ﻿@page "/countries"
-<h3>@Localizer["Countries"]</h3>
 
-<div class="mb-3">
-    <a class="btn btn-primary" href="/countries/create">@Localizer["New"] @Localizer["Country"]</a>
-</div>
+@if (loading)
+{
+    // Muestra un componente de carga si la variable 'loading' es verdadera
+    <Loading />
+}
+else
+{
+    // Tabla de MudBlazor para mostrar la lista de países con opciones avanzadas
+    <MudTable Items="@Countries"
+              @ref="table"
+              ServerData="LoadListAsync"
+              Dense="true"
+              Hover="true"
+              Striped="true"
+              FixedHeader="true"
+              FixedFooter="true">
 
-<GenericList MyList="Countries">
-    <Body>
-        <table class="table table-striped">
-            <thead>
-                <tr>
-                    <th>@Localizer["Country"]</th>
-                    <th># @Localizer["Teams"]</th>
-                    <th></th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach (var country in Countries!)
-                {
-                    <tr>
-                        <td>
-                            @country.Name
-                        </td>
-                        <td>
-                            @country.TeamsCount
-                        </td>
-                        <td>
-                            <a class="btn btn-warning" href="/countries/edit/@country.Id">@Localizer["Edit"]</a>
-                            <button class="btn btn-danger" @onclick=@(() => DeleteAsync(country))>@Localizer["Delete"]</button>
-                        </td>
-                    </tr>
-                }
-            </tbody>
-        </table>
-    </Body>
-</GenericList>
+        <!-- Barra de herramientas de la tabla -->
+        <ToolBarContent>
+            <div class="d-flex justify-content-between">
+                <!-- Título de la sección -->
+                <MudText Typo="Typo.h6" Class="me-4"> @Localizer["Countries"]</MudText>
+                <!-- Botón para agregar un nuevo país -->
+                <MudButton Variant="Variant.Outlined"
+                           EndIcon="@Icons.Material.Filled.Add"
+                           Color="Color.Info" OnClick="@(() => ShowModalAsync())">
+                    @Localizer["New"]
+                </MudButton>
+            </div>
+            <MudSpacer />
+            <!-- Componente de filtro para buscar países -->
+            <FilterComponent ApplyFilter="SetFilterValue" />
+        </ToolBarContent>
+
+        <!-- Encabezados de la tabla -->
+        <HeaderContent>
+            <MudTh>@Localizer["Country"]</MudTh>
+            <MudTh># @Localizer["Teams"]</MudTh>
+            <MudTh>@Localizer["Actions"]</MudTh>
+        </HeaderContent>
+
+        <!-- Plantilla para mostrar cada fila de la tabla -->
+        <RowTemplate>
+            <MudTd>@context.Name</MudTd>
+            <MudTd>@context.TeamsCount</MudTd>
+            <MudTd>
+                <!-- Botón para editar un país -->
+                <MudTooltip Text="@Localizer["Edit"]">
+                    <MudButton Variant="Variant.Filled"
+                               Color="Color.Warning"
+                               OnClick="@(() => ShowModalAsync(context.Id, true))">
+                        <MudIcon Icon="@Icons.Material.Filled.Edit" />
+                    </MudButton>
+                </MudTooltip>
+
+                <!-- Botón para eliminar un país -->
+                <MudTooltip Text="@Localizer["Delete"]">
+                    <MudButton Variant="Variant.Filled"
+                               Color="Color.Error"
+                               OnClick="@(() => DeleteAsync(@context))">
+                        <MudIcon Icon="@Icons.Material.Filled.Delete" />
+                    </MudButton>
+                </MudTooltip>
+            </MudTd>
+        </RowTemplate>
+
+        <!-- Mensaje cuando no hay registros en la tabla -->
+        <NoRecordsContent>
+            <MudText>@Localizer["NoRecords"]</MudText>
+        </NoRecordsContent>
+
+        <!-- Paginación de la tabla -->
+        <PagerContent>
+            <MudTablePager RowsPerPageString=@Localizer["RecordsNumber"]
+                           PageSizeOptions="pageSizeOptions"
+                           AllItemsText=@Localizer["All"]
+                           InfoFormat="@infoFormat" />
+        </PagerContent>
+    </MudTable>
+}

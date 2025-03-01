@@ -1,25 +1,32 @@
 ﻿<!-- Bloquea la navegación si el formulario ha sido modificado y no se ha guardado. -->
 <NavigationLock OnBeforeInternalNavigation="OnBeforeInternalNavigation" />
 
-<!-- Formulario de edición con validación. -->
+<!-- Formulario de edición con validación de datos. -->
 <EditForm EditContext="editContext" OnValidSubmit="OnValidSubmit">
     <!-- Habilita la validación basada en atributos de validación. -->
     <DataAnnotationsValidator />
 
-    <!-- Campo para el nombre del país. -->
-    <div class="mb-3">
-        <label>@Localizer["Country"]:</label> <!-- Etiqueta del campo. -->
-        <div>
-            <!-- Input para el nombre del país. -->
-            <InputText class="form-control" @bind-Value="@Country.Name" />
-            <!-- Mensaje de validación para el campo Name. -->
-            <ValidationMessage For="@(() => Country.Name)" />
-        </div>
-    </div>
+    <!-- Campo de texto para ingresar el nombre del país. -->
+    <MudTextField Label="@Localizer["Country"]"  
+                  @bind-Value="@Country.Name"   
+                  For="@(() => Country.Name)"  
+                  Class="mb-4" />              
 
-    <!-- Botón para guardar los cambios. -->
-    <button class="btn btn-primary" type="submit">@Localizer["SaveChanges"]</button>
     <!-- Botón para regresar sin guardar cambios. -->
-    <button class="btn btn-success" @onclick="ReturnAction">@Localizer["Return"]</button>
+    <MudButton Variant="Variant.Outlined" 
+               StartIcon="@Icons.Material.Filled.ArrowBack" 
+               Color="Color.Info" 
+               OnClick="ReturnAction">
+        @Localizer["Return"]
+    </MudButton>
+
+    <!-- Botón para guardar los cambios en el formulario. -->
+    <MudButton Variant="Variant.Outlined" 
+               StartIcon="@Icons.Material.Filled.Check"
+               Color="Color.Primary" 
+               ButtonType="ButtonType.Submit"> 
+        @Localizer["SaveChanges"]
+    </MudButton>
 </EditForm>
+
 
