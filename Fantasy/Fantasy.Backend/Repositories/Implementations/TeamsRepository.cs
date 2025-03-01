@@ -64,43 +64,58 @@ public class TeamsRepository : GenericRepository<Team>, ITeamsRepository
         };
     }
 
+    // 6.Implementacion de paginacion
+
     public override async Task<ActionResponse<IEnumerable<Team>>> GetAsync(PaginationDTO pagination)
     {
+        // Se obtiene una consulta sobre la tabla de equipos (Teams)
+        // y se incluye la información del país asociado (Country).
         var queryable = _context.Teams
             .Include(x => x.Country)
             .AsQueryable();
 
+        // Si el filtro de paginación no está vacío, se aplica un filtro
+        // que busca los equipos cuyo país contenga el texto ingresado.
         if (!string.IsNullOrWhiteSpace(pagination.Filter))
         {
             queryable = queryable.Where(x => x.Country!.Name.ToLower().Contains(pagination.Filter.ToLower()));
         }
 
+        // Se devuelve la respuesta encapsulada en un ActionResponse
         return new ActionResponse<IEnumerable<Team>>
         {
-            WasSuccess = true,
+            WasSuccess = true, // Indica que la operación fue exitosa
             Result = await queryable
-                .OrderBy(x => x.Name)
-                .Paginate(pagination)
-                .ToListAsync()
+                .OrderBy(x => x.Name) // Ordena los equipos por nombre
+                .Paginate(pagination) // Aplica la paginación según los parámetros recibidos
+                .ToListAsync() // Ejecuta la consulta de manera asíncrona y obtiene la lista de equipos
         };
     }
 
     //3.1 Metodos propios sin herencia
 
+    // 6.Implementacion de paginacion(No entra en el paso3)
     public async Task<ActionResponse<int>> GetTotalRecordsAsync(PaginationDTO pagination)
     {
+        // Se crea una consulta sobre la tabla Teams sin ejecutarla aún
         var queryable = _context.Teams.AsQueryable();
 
+        // Si el filtro no está vacío, se aplica un filtro de búsqueda
         if (!string.IsNullOrWhiteSpace(pagination.Filter))
         {
+            // Filtra los equipos cuyos países contengan el texto ingresado en el filtro
+            // Se usa ToLower() para hacer la búsqueda sin distinción entre mayúsculas y minúsculas
             queryable = queryable.Where(x => x.Country!.Name.ToLower().Contains(pagination.Filter.ToLower()));
         }
 
+        // Cuenta de manera asíncrona cuántos registros cumplen con el filtro aplicado
         double count = await queryable.CountAsync();
+
+        // Retorna el total de registros en un objeto de respuesta estructurada
         return new ActionResponse<int>
         {
-            WasSuccess = true,
-            Result = (int)count
+            WasSuccess = true,  // Indica que la operación fue exitosa
+            Result = (int)count // Se convierte el número a tipo entero antes de retornarlo
         };
     }
 

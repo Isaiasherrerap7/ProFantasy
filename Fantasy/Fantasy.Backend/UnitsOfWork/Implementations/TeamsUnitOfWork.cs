@@ -22,7 +22,7 @@ public class TeamsUnitOfWork : GenericUnitOfWork<Team>, ITeamsUnitOfWork
     }
 
     // 7.establecemos que los metodos no sean los genericos si no los de la logica del repository espeficico (teamsRepository)
-    // inyectar el repository y la unitofwork en el program
+    // 8.inyectar el repository y la unitofwork en el program
     //9. ya puedo crear la api con el contexto de (TeamsUnitOfWork)
 
     public override async Task<ActionResponse<IEnumerable<Team>>> GetAsync() => await _teamsRepository.GetAsync();
