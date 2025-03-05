@@ -3,123 +3,176 @@ using Fantasy.Frontend.Repositories;
 using Fantasy.Shared.DTOs;
 using Fantasy.Shared.Entities;
 using Fantasy.Shared.Resources;
+using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Forms;
 using Microsoft.AspNetCore.Components.Routing;
-using Microsoft.AspNetCore.Components;
 using Microsoft.Extensions.Localization;
 
-namespace Fantasy.Frontend.Pages.Teams
+namespace Fantasy.Frontend.Pages.Teams;
+
+public partial class TeamForm
 {
-    // Componente para manejar el formulario de creación/edición de un equipo.
-    public partial class TeamForm
+    // EditContext se usa para manejar la validación del formulario
+    private EditContext editContext = null!;
+
+    // País seleccionado en el formulario
+    private Country selectedCountry = new();
+
+    // Lista de países obtenidos desde la API
+    private List<Country>? countries;
+
+    // URL de la imagen del equipo (si ya existe)
+    private string? imageUrl;
+
+    // Mensaje informativo sobre la forma de la imagen (cuadrada o rectangular)
+    private string? shapeImageMessage;
+
+    // Inyección de dependencias necesarias para el componente
+    [Inject] private SweetAlertService SweetAlertService { get; set; } = null!;
+
+    [Inject] private IStringLocalizer<Literals> Localizer { get; set; } = null!;
+    [Inject] private IRepository Repository { get; set; } = null!;
+
+    // Modelo del formulario (TeamDTO)
+    [EditorRequired, Parameter] public TeamDTO TeamDTO { get; set; } = null!;
+
+    // Evento que se ejecuta cuando el formulario se envía correctamente
+    [EditorRequired, Parameter] public EventCallback OnValidSubmit { get; set; }
+
+    // Evento para manejar la acción de retorno (por ejemplo, cerrar el formulario)
+    [EditorRequired, Parameter] public EventCallback ReturnAction { get; set; }
+
+    // Indica si el formulario se envió correctamente
+    public bool FormPostedSuccessfully { get; set; } = false;
+
+    /// <summary>
+    /// Inicializa el EditContext con el modelo `TeamDTO`
+    /// </summary>
+    protected override void OnInitialized()
     {
-        // Se encarga de hacer el seguimiento de los cambios en el formulario (validaciones, estado sucio, etc.)
-        private EditContext editContext = null!;
+        editContext = new(TeamDTO);
+    }
 
-        // Se inicializa el EditContext con el TeamDTO tan pronto como se crea el componente.
-        protected override void OnInitialized()
+    /// <summary>
+    /// Se ejecuta de manera asíncrona al inicializar el componente y carga los países disponibles.
+    /// </summary>
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadCountriesAsync();
+    }
+
+    /// <summary>
+    /// Se ejecuta cuando los parámetros del componente cambian.
+    /// </summary>
+    protected override void OnParametersSet()
+    {
+        base.OnParametersSet();
+
+        // Si el equipo ya tiene una imagen guardada, la almacena en `imageUrl` para mostrarla.
+        if (!string.IsNullOrEmpty(TeamDTO.Image))
         {
-            editContext = new(TeamDTO);
+            imageUrl = TeamDTO.Image;
+            TeamDTO.Image = null;  // Se limpia el campo para evitar enviar la misma imagen innecesariamente
         }
 
-        // Recibe como parámetro la información del equipo.
-        [EditorRequired, Parameter] public TeamDTO TeamDTO { get; set; } = null!;
+        // Establece el mensaje de información sobre la forma de la imagen
+        shapeImageMessage = TeamDTO.IsImageSquare ? Localizer["ImageIsSquare"] : Localizer["ImageIsRectangular"];
+    }
 
-        // Evento que se ejecuta cuando el formulario pasa la validación y se confirma.
-        [EditorRequired, Parameter] public EventCallback OnValidSubmit { get; set; }
+    /// <summary>
+    /// Cambia el estado de si la imagen es cuadrada o no y actualiza el mensaje informativo.
+    /// </summary>
+    private void OnToggledChanged(bool toggled)
+    {
+        TeamDTO.IsImageSquare = toggled;
+        shapeImageMessage = TeamDTO.IsImageSquare ? Localizer["ImageIsSquare"] : Localizer["ImageIsRectangular"];
+    }
 
-        // Evento que se puede invocar para regresar a la vista anterior o cancelar la acción.
-        [EditorRequired, Parameter] public EventCallback ReturnAction { get; set; }
+    /// <summary>
+    /// Obtiene la lista de países desde la API para mostrarlos en un ComboBox.
+    /// </summary>
+    private async Task LoadCountriesAsync()
+    {
+        var responseHttp = await Repository.GetAsync<List<Country>>("/api/countries/combo");
 
-        // Indica si el formulario se envió correctamente, para usarlo al gestionar navegación y cambios.
-        public bool FormPostedSuccessfully { get; set; } = false;
-
-        // Servicios inyectados:
-        // - Para mostrar alertas (SweetAlertService).
-        // - Para localización de literales.
-        // - Para realizar peticiones al repositorio (API).
-        [Inject] private SweetAlertService SweetAlertService { get; set; } = null!;
-
-        [Inject] private IStringLocalizer<Literals> Localizer { get; set; } = null!;
-        [Inject] private IRepository Repository { get; set; } = null!;
-
-        // Lista que almacenará los países obtenidos desde la API (para el combobox, por ejemplo).
-        private List<Country>? countries;
-
-        // Almacena temporalmente la URL de la imagen, en caso de existir.
-        private string? imageUrl;
-
-        // Al inicializar el componente de forma asíncrona, se cargan los países.
-        protected override async Task OnInitializedAsync()
+        // Si ocurre un error, se muestra una alerta con SweetAlert
+        if (responseHttp.Error)
         {
-            await LoadCountriesAsync();
+            var message = await responseHttp.GetErrorMessageAsync();
+            await SweetAlertService.FireAsync("Error", message, SweetAlertIcon.Error);
+            return;
         }
 
-        // Método que se ejecuta cuando se modifican los parámetros del componente.
-        // Si se ha proporcionado una imagen dentro de TeamDTO, se mueve a la variable imageUrl
-        // y se limpia TeamDTO.Image para que no quede duplicada.
-        protected override void OnParametersSet()
+        // Almacena los países obtenidos
+        countries = responseHttp.Response;
+    }
+
+    /// <summary>
+    /// Se ejecuta cuando el usuario selecciona una nueva imagen.
+    /// </summary>
+    private void ImageSelected(string imagenBase64)
+    {
+        // Guarda la imagen en Base64 en el modelo y limpia la imagen previa si existía.
+        TeamDTO.Image = imagenBase64;
+        imageUrl = null;
+    }
+
+    /// <summary>
+    /// Maneja la confirmación antes de salir de la página si el formulario ha sido editado.
+    /// </summary>
+    private async Task OnBeforeInternalNavigation(LocationChangingContext context)
+    {
+        var formWasEdited = editContext.IsModified();
+
+        // Si el formulario no fue modificado o ya se envió correctamente, se permite la navegación
+        if (!formWasEdited || FormPostedSuccessfully)
         {
-            base.OnParametersSet();
-            if (!string.IsNullOrEmpty(TeamDTO.Image))
-            {
-                imageUrl = TeamDTO.Image;
-                TeamDTO.Image = null;
-            }
+            return;
         }
 
-        // Carga la lista de países consumiendo la API a través del repositorio.
-        // Si ocurre un error en la respuesta, se muestra un mensaje de alerta.
-        private async Task LoadCountriesAsync()
+        // Muestra un cuadro de confirmación para evitar perder cambios
+        var result = await SweetAlertService.FireAsync(new SweetAlertOptions
         {
-            var responseHttp = await Repository.GetAsync<List<Country>>("/api/countries/combo");
-            if (responseHttp.Error)
-            {
-                var message = await responseHttp.GetErrorMessageAsync();
-                await SweetAlertService.FireAsync("Error", message, SweetAlertIcon.Error);
-                return;
-            }
+            Title = Localizer["Confirmation"],
+            Text = Localizer["LeaveAndLoseChanges"],
+            Icon = SweetAlertIcon.Warning,
+            ShowCancelButton = true,
+            CancelButtonText = Localizer["Cancel"],
+        });
 
-            countries = responseHttp.Response;
+        var confirm = !string.IsNullOrEmpty(result.Value);
+        if (confirm)
+        {
+            return;  // Permite la navegación
         }
 
-        // Actualiza la propiedad TeamDTO.Image con la cadena base64 de la imagen seleccionada
-        // y limpia la variable imageUrl para evitar conflictos.
-        private void ImageSelected(string imagenBase64)
+        // Previene la navegación si el usuario cancela la acción
+        context.PreventNavigation();
+    }
+
+    /// <summary>
+    /// Filtra la lista de países en función del texto ingresado por el usuario en el buscador.
+    /// </summary>
+    private async Task<IEnumerable<Country>> SearchCountry(string searchText, CancellationToken cancellationToken)
+    {
+        await Task.Delay(5); // Simula una pequeña espera para mejorar la experiencia de búsqueda
+
+        if (string.IsNullOrWhiteSpace(searchText))
         {
-            TeamDTO.Image = imagenBase64;
-            imageUrl = null;
+            return countries!; // Retorna todos los países si no hay búsqueda
         }
 
-        // Maneja la lógica para detectar si el usuario intenta navegar fuera de la página
-        // cuando hay cambios sin guardar. Utiliza un cuadro de diálogo de SweetAlertService para confirmar.
-        private async Task OnBeforeInternalNavigation(LocationChangingContext context)
-        {
-            // Revisa si el formulario ha sido modificado y si aún no se envió con éxito.
-            var formWasEdited = editContext.IsModified();
-            if (!formWasEdited || FormPostedSuccessfully)
-            {
-                return;
-            }
+        return countries!
+            .Where(x => x.Name.Contains(searchText, StringComparison.InvariantCultureIgnoreCase))
+            .ToList();
+    }
 
-            // Muestra un cuadro de diálogo para confirmar la salida sin guardar cambios.
-            var result = await SweetAlertService.FireAsync(new SweetAlertOptions
-            {
-                Title = Localizer["Confirmation"],
-                Text = Localizer["LeaveAndLoseChanges"],
-                Icon = SweetAlertIcon.Warning,
-                ShowCancelButton = true,
-                CancelButtonText = Localizer["Cancel"],
-            });
-
-            // Si el usuario elige cancelar (no confirma salir), se impide la navegación.
-            var confirm = !string.IsNullOrEmpty(result.Value);
-            if (confirm)
-            {
-                return;
-            }
-
-            context.PreventNavigation();
-        }
+    /// <summary>
+    /// Se ejecuta cuando el usuario selecciona un país en el formulario.
+    /// </summary>
+    private void CountryChanged(Country country)
+    {
+        selectedCountry = country;
+        TeamDTO.CountryId = country.Id; // Asigna el ID del país seleccionado al equipo
     }
 }

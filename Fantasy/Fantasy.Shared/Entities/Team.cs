@@ -23,7 +23,11 @@ public class Team
     public Country? Country { get; set; }
 
     // Es la clave foránea que relaciona un equipo con un país.
+    [Display(Name = "Country", ResourceType = typeof(Literals))]
     public int CountryId { get; set; }
+
+    [Display(Name = "IsImageSquare", ResourceType = typeof(Literals))]
+    public bool IsImageSquare { get; set; }
 
     // prop de lectura si no ecnuentra una image poner la poder defecto
     public string ImageFull => string.IsNullOrEmpty(Image) ? "/images/NoImage.png" : Image;

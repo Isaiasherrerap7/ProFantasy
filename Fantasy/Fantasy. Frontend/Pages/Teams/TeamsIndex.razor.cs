@@ -6,105 +6,199 @@ using Microsoft.AspNetCore.Components;
 using Microsoft.Extensions.Localization;
 using System.Threading.Tasks;
 using System;
+using Fantasy.Frontend.Pages.Countries;
+using Fantasy.Frontend.Shared;
+using MudBlazor;
+using System.Net;
 
 namespace Fantasy.Frontend.Pages.Teams;
 
+// Este componente representa una página que muestra un listado de equipos con paginación y opciones de filtrado.
 public partial class TeamsIndex
 {
-    // 1.Inyecta IRepository para acceder al repositorio al protocolo http para acceder a los datos del backend api
-    [Inject] private IRepository Repository { get; set; } = null!;
-
-    //2. Inyecta IStringLocalizer para acceder a los literales de los nombre de titulos en idioma ingles y español
-    [Inject] private IStringLocalizer<Literals> Localizer { get; set; } = null!;
-
-    //3. Permite controlar la navegación en Blazor
-    [Inject] private NavigationManager NavigationManager { get; set; } = null!;
-
-    //4. Servicio que proporciona notificaciones emergentes personalizables
-    [Inject] private SweetAlertService SweetAlertService { get; set; } = null!;
-
-    // 5. prop Almacena la lista de equipos (Team) que se obtiene del backend API.
+    // Lista de equipos obtenidos desde el backend
     private List<Team>? Teams { get; set; }
 
-    // Cargar los Equipos al Inicializar la Página
-    // Cuando el componente se renderiza por primera vez (OnInitializedAsync()), llama a LoadAsync(). LoadAsync() obtiene los equipos desde el backend.
+    // Tabla de MudBlazor para mostrar los equipos
+    private MudTable<Team> table = new();
+
+    // Opciones de tamaño de página para la paginación
+    private readonly int[] pageSizeOptions = { 10, 25, 50, int.MaxValue };
+
+    // Total de registros en la base de datos
+    private int totalRecords = 0;
+
+    // Bandera que indica si se está cargando información
+    private bool loading;
+
+    // URL base para acceder a la API de equipos
+    private const string baseUrl = "api/teams";
+
+    // Formato del texto de información de paginación
+    private string infoFormat = "{first_item}-{last_item} => {all_items}";
+
+    // Inyección de dependencias en el componente
+    [Inject] private IStringLocalizer<Literals> Localizer { get; set; } = null!;
+
+    [Inject] private IRepository Repository { get; set; } = null!;
+    [Inject] private IDialogService DialogService { get; set; } = null!;
+    [Inject] private ISnackbar Snackbar { get; set; } = null!;
+    [Inject] private NavigationManager NavigationManager { get; set; } = null!;
+
+    // Parámetro recibido desde la URL para filtrar equipos
+    [Parameter, SupplyParameterFromQuery] public string Filter { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Se ejecuta cuando el componente se inicializa.
+    /// Carga la cantidad total de registros desde la API.
+    /// </summary>
     protected override async Task OnInitializedAsync()
     {
-        await LoadAsync();
+        await LoadTotalRecordsAsync();
     }
 
-    // Método LoadAsync() (Cargar los Equipos)
-    // Llama al backend usando Repository.GetAsync<List<Team>>("api/teams").
-    // Si hay un error en la respuesta, muestra una alerta de error(SweetAlertService).
-    // Si la respuesta es exitosa, guarda los equipos en Teams.
-    private async Task LoadAsync()
+    /// <summary>
+    /// Carga el número total de registros de equipos desde la API.
+    /// Si hay un filtro activo, lo incluye en la consulta.
+    /// </summary>
+    private async Task LoadTotalRecordsAsync()
     {
-        var responseHppt = await Repository.GetAsync<List<Team>>("api/teams");
-        if (responseHppt.Error)
+        loading = true;
+        var url = $"{baseUrl}/totalRecordsPaginated";
+
+        if (!string.IsNullOrWhiteSpace(Filter))
         {
-            var message = await responseHppt.GetErrorMessageAsync();
-            await SweetAlertService.FireAsync(Localizer["Error"], message, SweetAlertIcon.Error);
-            return;
-        }
-        Teams = responseHppt.Response!;
-    }
-
-    // Método DeleteAsync(Team team) (Eliminar un Equipo)
-    // Muestra un SweetAlert para confirmar la eliminación.
-    //Si el usuario presiona "Cancelar", la acción se detiene(return).
-    //Si presiona "Sí", se ejecuta la eliminación.
-
-    //Llama a Repository.DeleteAsync($"api/teams/{team.Id}") para eliminar el equipo.
-    //Si el equipo no existe (404), redirige al usuario a / usando NavigationManager.
-    //Si hay otro error, muestra un mensaje con SweetAlertService.
-
-    //Si la eliminación es exitosa, recarga la lista de equipos (await LoadAsync();).
-
-    //Muestra un Toast con mensaje de éxito.
-    //El Toast aparece en la parte inferior derecha y se cierra automáticamente en 3 segundos.
-
-    private async Task DeleteAsync(Team team)
-    {
-        var result = await SweetAlertService.FireAsync(new SweetAlertOptions
-        {
-            Title = Localizer["Confirmation"],
-            Text = string.Format(Localizer["DeleteConfirm"], Localizer["Team"], team.Name),
-            Icon = SweetAlertIcon.Question,
-            ShowCancelButton = true,
-            CancelButtonText = Localizer["Cancel"]
-        });
-
-        var confirm = string.IsNullOrEmpty(result.Value);
-
-        if (confirm)
-        {
-            return;
+            url += $"?filter={Filter}";
         }
 
-        var responseHttp = await Repository.DeleteAsync($"api/teams/{team.Id}");
+        // Realiza la petición a la API
+        var responseHttp = await Repository.GetAsync<int>(url);
         if (responseHttp.Error)
         {
-            if (responseHttp.HttpResponseMessage.StatusCode == System.Net.HttpStatusCode.NotFound)
+            var message = await responseHttp.GetErrorMessageAsync();
+            Snackbar.Add(Localizer[message!], Severity.Error);
+            return;
+        }
+
+        // Almacena la cantidad total de registros
+        totalRecords = responseHttp.Response;
+        loading = false;
+    }
+
+    /// <summary>
+    /// Carga la lista de equipos de forma paginada desde la API.
+    /// </summary>
+    private async Task<TableData<Team>> LoadListAsync(TableState state, CancellationToken cancellationToken)
+    {
+        int page = state.Page + 1; // MudBlazor usa índices de página basados en 0
+        int pageSize = state.PageSize;
+        var url = $"{baseUrl}/paginated/?page={page}&recordsnumber={pageSize}";
+
+        if (!string.IsNullOrWhiteSpace(Filter))
+        {
+            url += $"&filter={Filter}";
+        }
+
+        // Obtiene los datos de la API
+        var responseHttp = await Repository.GetAsync<List<Team>>(url);
+        if (responseHttp.Error)
+        {
+            var message = await responseHttp.GetErrorMessageAsync();
+            Snackbar.Add(Localizer[message!], Severity.Error);
+            return new TableData<Team> { Items = [], TotalItems = 0 };
+        }
+
+        if (responseHttp.Response == null)
+        {
+            return new TableData<Team> { Items = [], TotalItems = 0 };
+        }
+
+        return new TableData<Team>
+        {
+            Items = responseHttp.Response,
+            TotalItems = totalRecords
+        };
+    }
+
+    /// <summary>
+    /// Aplica un filtro a la lista y recarga los datos.
+    /// </summary>
+    private async Task SetFilterValue(string value)
+    {
+        Filter = value;
+        await LoadTotalRecordsAsync();
+        await table.ReloadServerData();
+    }
+
+    /// <summary>
+    /// Muestra un modal para crear o editar un equipo.
+    /// </summary>
+    private async Task ShowModalAsync(int id = 0, bool isEdit = false)
+    {
+        var options = new DialogOptions() { CloseOnEscapeKey = true, CloseButton = true };
+        IDialogReference? dialog;
+
+        if (isEdit)
+        {
+            var parameters = new DialogParameters
             {
-                NavigationManager.NavigateTo("/");
+                { "Id", id }
+            };
+            dialog = DialogService.Show<TeamEdit>($"{Localizer["Edit"]} {Localizer["Team"]}", parameters, options);
+        }
+        else
+        {
+            dialog = DialogService.Show<TeamCreate>($"{Localizer["New"]} {Localizer["Team"]}", options);
+        }
+
+        var result = await dialog.Result;
+        if (result!.Canceled)
+        {
+            await LoadTotalRecordsAsync();
+            await table.ReloadServerData();
+        }
+    }
+
+    /// <summary>
+    /// Muestra un cuadro de diálogo de confirmación y elimina un equipo si se confirma la acción.
+    /// </summary>
+    private async Task DeleteAsync(Team team)
+    {
+        var parameters = new DialogParameters
+        {
+            { "Message", string.Format(Localizer["DeleteConfirm"], Localizer["Team"], team.Name) }
+        };
+        var options = new DialogOptions { CloseButton = true, MaxWidth = MaxWidth.ExtraSmall, CloseOnEscapeKey = true };
+
+        // Muestra el cuadro de confirmación
+        var dialog = DialogService.Show<ConfirmDialog>(Localizer["Confirmation"], parameters, options);
+        var result = await dialog.Result;
+
+        if (result!.Canceled)
+        {
+            return;
+        }
+
+        // Realiza la petición de eliminación
+        var responseHttp = await Repository.DeleteAsync($"{baseUrl}/{team.Id}");
+        if (responseHttp.Error)
+        {
+            // Si el equipo no se encuentra, redirige a la página de equipos
+            if (responseHttp.HttpResponseMessage.StatusCode == HttpStatusCode.NotFound)
+            {
+                NavigationManager.NavigateTo("/teams");
             }
             else
             {
-                var mensajeError = await responseHttp.GetErrorMessageAsync();
-                await SweetAlertService.FireAsync(Localizer["Error"], mensajeError, SweetAlertIcon.Error);
+                var message = await responseHttp.GetErrorMessageAsync();
+                Snackbar.Add(Localizer[message!], Severity.Error);
             }
             return;
         }
 
-        await LoadAsync();
-        var toast = SweetAlertService.Mixin(new SweetAlertOptions
-        {
-            Toast = true,
-            Position = SweetAlertPosition.BottomEnd,
-            ShowConfirmButton = true,
-            Timer = 3000,
-            ConfirmButtonText = Localizer["Yes"]
-        });
-        toast.FireAsync(icon: SweetAlertIcon.Success, message: Localizer["RecordDeletedOk"]);
+        // Recarga la lista de equipos tras la eliminación
+        await LoadTotalRecordsAsync();
+        await table.ReloadServerData();
+        Snackbar.Add(Localizer["RecordDeletedOk"], Severity.Success);
     }
 }

@@ -511,4 +511,7 @@
   <data name="Active" xml:space="preserve">
     <value>Active</value>
   </data>
+  <data name="IsImageSquare" xml:space="preserve">
+    <value>Is Image Square?</value>
+  </data>
 </root>

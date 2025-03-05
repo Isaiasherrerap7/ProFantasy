@@ -1,35 +1,23 @@
-﻿@page "/teams/edit/{Id:int}"
-<!--
-    Configura la ruta para la página de edición de un equipo, recibiendo un parámetro entero "Id".
-    Ejemplo de URL: "/teams/edit/5" para editar el equipo con Id = 5.
--->
-
-<h3>@Localizer["Edit"] @Localizer["Team"]</h3>
-<!--
-    Encabezado que muestra un texto de "Editar Equipo" de manera localizada
-    (traducciones manejadas por el servicio de localización).
--->
-@if (teamDTO is null)
+﻿@if (teamDTO is null)
 {
-    <!--
-        Si teamDTO no está cargado todavía (por ejemplo, porque sigue esperando
-        respuesta del servidor), muestra un componente Loading que indica al usuario
-        que se está procesando o cargando la información.
-    -->
+    <!-- Muestra un componente de carga mientras se obtienen los datos del equipo -->
     <Loading />
 }
 else
 {
-    <!--
-        Cuando teamDTO ya está disponible, utiliza el componente TeamForm para
-        mostrar y editar los datos del equipo.
-        - @ref="teamForm": permite hacer referencia al formulario desde el código subyacente.
-        - TeamDTO="teamDTO": el modelo que contiene los datos del equipo a editar.
-        - OnValidSubmit="EditAsync": método que se llama al enviar el formulario y pasar la validación.
-        - ReturnAction="Return": método que se llama al pulsar el botón de retorno.
-    -->
-    <TeamForm @ref="teamForm"
-              TeamDTO="teamDTO"
-              OnValidSubmit="EditAsync"
-              ReturnAction="Return" />
+
+    <MudDialog>
+        <!-- Diálogo de MudBlazor que contiene el formulario de edición -->
+
+        <DialogContent>
+            <!-- Formulario de edición del equipo -->
+            <!-- Referencia al formulario -->
+            <!-- Modelo de datos a editar -->
+            <!-- Acción que se ejecuta al enviar el formulario -->
+            <!-- Acción para cerrar el diálogo y regresar -->
+
+            <TeamForm @ref="teamForm" TeamDTO="teamDTO" OnValidSubmit="EditAsync" ReturnAction="Return" />
+        </DialogContent>
+    </MudDialog>
 }
+

@@ -11,8 +11,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Fantasy.Backend.Migrations
 {
     [DbContext(typeof(DataContext))]
-    [Migration("20250208225551_AddteamEntity")]
-    partial class AddteamEntity
+    [Migration("20250305010535_Initial")]
+    partial class Initial
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -58,6 +58,9 @@ namespace Fantasy.Backend.Migrations
 
                     b.Property<string>("Image")
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("IsImageSquare")
+                        .HasColumnType("bit");
 
                     b.Property<string>("Name")
                         .IsRequired()

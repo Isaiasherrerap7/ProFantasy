@@ -1,66 +1,96 @@
-﻿@* //1. Define la URL de la página: Cuando el usuario navega a /teams, este componente se carga. *@
-@page "/teams"
+﻿@page "/teams"
+<!-- Define la ruta de la página como "/teams" -->
 
-@* //1.1 Título de la Página con Internacionalización *@
-<h3>@Localizer["Teams"]</h3>
+@if (loading)  
+{
+    <!-- Muestra un componente de carga mientras se obtiene la información -->
+    <Loading />
+}
+else
+{
+    <!-- Tabla de MudBlazor que muestra los equipos -->
+    <MudTable Items="@Teams"
+              @ref="table"
+              ServerData="LoadListAsync"
+              Dense="true"
+              Hover="true"
+              Striped="true"
+              FixedHeader="true"
+              FixedFooter="true">
 
-@* 2.Botón para Crear un Nuevo Equipo *@
-<div class="mb-3">
-    <a class="btn btn-primary" href="/teams/create">@Localizer["New"] @Localizer["Team"]</a>
-</div>
+        <!-- Encabezado con el título y botón para agregar un equipo -->
+        <ToolBarContent>
+            <div class="d-flex justify-content-between">
+                <!-- Título de la tabla -->
+                <MudText Typo="Typo.h6" Class="me-4">@Localizer["Teams"]</MudText>
+                
+                <!-- Botón para agregar un nuevo equipo -->
+                <MudButton Variant="Variant.Outlined"
+                           EndIcon="@Icons.Material.Filled.Add"
+                           Color="Color.Info" 
+                           OnClick="@(() => ShowModalAsync())">
+                    @Localizer["New"]
+                </MudButton>
+            </div>
+            <MudSpacer />
+            
+            <!-- Componente para filtrar los datos -->
+            <FilterComponent ApplyFilter="SetFilterValue" />
+        </ToolBarContent>
 
-@* 3.Renderizar la Lista de Equipos en GenericList *@
-<GenericList MyList="Teams">
-    <Body>
-        @* Usa una tabla con Bootstrap para mejorar el diseño (table-striped agrega filas con rayas alternas). *@
-        <table class="table table-striped">
-            @* Encabezados de la Tabla *@
-            <thead>
-                <tr>
-                    <th>@Localizer["Team"]</th>
-                    <th>@Localizer["Image"]</th>
-                    <th>@Localizer["Country"]</th>
-                    <th></th>
-                </tr>
-            </thead>
-           @*  Muestra encabezados traducidos:
+        <!-- Definición de los encabezados de la tabla -->
+        <HeaderContent>
+            <MudTh>@Localizer["Team"]</MudTh>
+            <MudTh>@Localizer["Image"]</MudTh>
+            <MudTh>@Localizer["Country"]</MudTh>
+            <MudTh>@Localizer["Actions"]</MudTh>
+        </HeaderContent>
 
-            "Team" → Nombre del equipo
-            "Image" → Imagen del equipo
-            "Country" → País del equipo
-            Última columna vacía para los botones de acción *@
+        <!-- Plantilla para las filas de la tabla -->
+        <RowTemplate>
+            <MudTd>@context.Name</MudTd>  <!-- Nombre del equipo -->
+            
+            <MudTd>
+                <MudImage Src="@context.ImageFull" Width="90" Height="60" />
+            </MudTd>  <!-- Imagen del equipo -->
 
-            @* Cuerpo de la Tabla (@foreach) *@
-            <tbody>
-                @foreach (var team in Teams!)
-                {
-                    <tr>
-                        <td>
-                            @team.Name
-                        </td>
-                        <td>
-                            <img src="@team.ImageFull" style="width:80px;" />
-                        </td>
-                        <td>
-                            @team.Country!.Name
-                        </td>
-                        <td>
-                            <a class="btn btn-warning" href="/teams/edit/@team.Id">@Localizer["Edit"]</a>
-                            <button class="btn btn-danger" @onclick=@(() => DeleteAsync(team))>@Localizer["Delete"]</button>
-                        </td>
-                    </tr>
-                }
-            </tbody>
-          @* Itera sobre Teams para mostrar cada equipo en una fila.
-            @team.Name → Muestra el nombre del equipo.
-            <img src="@team.Image" /> → Muestra la imagen del equipo con ancho de 80px.
-            @team.Country!.Name → Muestra el nombre del país al que pertenece el equipo.
+            <MudTd>@context.Country!.Name</MudTd>  <!-- País del equipo -->
 
-            Botones de Acción
-            Editar (href="/teams/edit/@team.Id") → Redirige a la página de edición del equipo.
-            Eliminar (@onclick=@(() => DeleteAsync(team))) → Llama al método DeleteAsync(team) *@
+            <MudTd>
+                <!-- Botón para editar un equipo -->
+                <MudTooltip Text="@Localizer["Edit"]">
+                    <MudButton Variant="Variant.Filled"
+                               Color="Color.Warning"
+                               OnClick="@(() => ShowModalAsync(context.Id, true))">
+                        <MudIcon Icon="@Icons.Material.Filled.Edit" />
+                    </MudButton>
+                </MudTooltip>
 
-        </table>
-    </Body>
-</GenericList>
+                <!-- Botón para eliminar un equipo -->
+                <MudTooltip Text="@Localizer["Delete"]">
+                    <MudButton Variant="Variant.Filled"
+                               Color="Color.Error"
+                               OnClick="@(() => DeleteAsync(@context))">
+                        <MudIcon Icon="@Icons.Material.Filled.Delete" />
+                    </MudButton>
+                </MudTooltip>
+            </MudTd>
+        </RowTemplate>
+
+        <!-- Contenido mostrado cuando no hay registros -->
+        <NoRecordsContent>
+            <MudText>@Localizer["NoRecords"]</MudText>
+        </NoRecordsContent>
+
+        <!-- Paginación de la tabla -->
+        <PagerContent>
+            <MudTablePager RowsPerPageString=@Localizer["RecordsNumber"]
+                           PageSizeOptions="pageSizeOptions"
+                           AllItemsText=@Localizer["All"]
+                           InfoFormat="@infoFormat" />
+        </PagerContent>
+
+    </MudTable>
+}
+
 

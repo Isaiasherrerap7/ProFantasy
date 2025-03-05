@@ -1,39 +1,60 @@
-﻿<NavigationLock OnBeforeInternalNavigation="OnBeforeInternalNavigation" />
+﻿<!-- Bloquea la navegación si el usuario intenta salir con cambios sin guardar -->
+<NavigationLock OnBeforeInternalNavigation="OnBeforeInternalNavigation" />
 
+<!-- Formulario de edición con validación y envío de datos -->
 <EditForm EditContext="editContext" OnValidSubmit="OnValidSubmit">
+    <!-- Habilita la validación basada en anotaciones de datos -->
     <DataAnnotationsValidator />
-    <div class="mb-3">
-        <label>@Localizer["Team"]:</label>
-        <div>
-            <InputText class="form-control" @bind-Value="@TeamDTO.Name" />
-            <ValidationMessage For="@(() => TeamDTO.Name)" />
-        </div>
-    </div>
-    <div class="mb-3">
-        <label>@Localizer["Country"]:</label>
-        <div>
-            <select class="form-select" @bind="TeamDTO.CountryId">
-                <option value="0">@Localizer["SelectACountry"]</option>
-                @if (countries is not null)
-                {
-                    @foreach (var country in countries)
-                    {
-                        <option value="@country.Id">@country.Name</option>
-                    }
-                }
-            </select>
-            <ValidationMessage For="@(() => TeamDTO.CountryId)" />
-        </div>
-    </div>
-    <div class="mb-3">
+
+    <!-- Campo de texto para el nombre del equipo -->
+    <MudTextField Label="@Localizer["Team"]"
+                  @bind-Value="@TeamDTO.Name"
+                  For="@(() => TeamDTO.Name)"
+                  Class="mb-4" />
+
+    <!-- Autocompletado para seleccionar un país -->
+    <MudAutocomplete T="Country"
+                     Label=@Localizer["Country"]
+                     Placeholder=@Localizer["SelectACountry"]
+                     SearchFunc="SearchCountry"
+                     Value="selectedCountry"
+                     ValueChanged="CountryChanged"
+                     ToStringFunc="@(e=> e==null?null : $"{e.Name}")">
+        <!-- Plantilla para mostrar los países en la lista desplegable -->
+        <ItemTemplate Context="itemContext">
+            @itemContext.Name
+        </ItemTemplate>
+    </MudAutocomplete>
+
+    <!-- Botón Toggle para indicar si la imagen es cuadrada o rectangular -->
+    <MudToggleIconButton Toggled="TeamDTO.IsImageSquare"
+                         ToggledChanged="OnToggledChanged"
+                         Icon="@Icons.Material.Filled.Square"
+                         Color="@Color.Primary"
+                         ToggledIcon="@Icons.Material.Filled.Rectangle"
+                         ToggledColor="@Color.Secondary"
+                         title="@(TeamDTO.IsImageSquare ? @Localizer["Rectangular"] : @Localizer["Square"])" />
+    <span>@shapeImageMessage</span>
+
+    <!-- Componente personalizado para subir imágenes -->
+    <div class="my-2">
         <InputImg Label=@Localizer["Image"] ImageSelected="ImageSelected" ImageURL="@imageUrl" />
     </div>
 
+    <!-- Botón para regresar a la pantalla anterior -->
+    <MudButton Variant="Variant.Outlined"
+               StartIcon="@Icons.Material.Filled.ArrowBack"
+               Color="Color.Info"
+               OnClick="ReturnAction">
+        @Localizer["Return"]
+    </MudButton>
 
-    <button class="btn btn-primary" type="submit">@Localizer["SaveChanges"]</button>
-    <button class="btn btn-success" @onclick="ReturnAction">@Localizer["Return"]</button>
+    <!-- Botón para guardar los cambios (envía el formulario) -->
+    <MudButton Variant="Variant.Outlined"
+               StartIcon="@Icons.Material.Filled.Check"
+               Color="Color.Primary"
+               ButtonType="ButtonType.Submit">
+        @Localizer["SaveChanges"]
+    </MudButton>
 </EditForm>
 
-@* Este formulario permite crear o editar un equipo (Team) ingresando nombre, país y seleccionando una imagen,
-validando los datos según las reglas definidas en el modelo (TeamDTO). Además, evita la salida accidental 
-si hay cambios sin guardar, mostrando un aviso antes de navegar a otra página. *@

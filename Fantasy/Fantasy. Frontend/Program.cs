@@ -15,4 +15,5 @@ builder.Services.AddLocalization();
 builder.Services.AddSweetAlert2();
 // Servicio a mudblazor
 builder.Services.AddMudServices();
+
 await builder.Build().RunAsync();

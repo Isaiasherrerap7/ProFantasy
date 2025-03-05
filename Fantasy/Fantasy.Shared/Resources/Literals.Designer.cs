@@ -646,6 +646,15 @@ namespace Fantasy.Shared.Resources {
         }
         
         /// <summary>
+        ///   Busca una cadena traducida similar a Is Image Square?.
+        /// </summary>
+        public static string IsImageSquare {
+            get {
+                return ResourceManager.GetString("IsImageSquare", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Busca una cadena traducida similar a Join Group.
         /// </summary>
         public static string JoinGroup {
