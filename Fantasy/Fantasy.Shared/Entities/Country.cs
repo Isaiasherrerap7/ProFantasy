@@ -17,4 +17,9 @@ public class Country
 
     // Propiedad de lectura solo se puede optener Es una propiedad calculada que devuelve la cantidad de equipos asociados a un país.
     public int TeamsCount => Teams == null ? 0 : Teams.Count;
+
+    // Un pais tiene una coleccion de usuarios
+    public ICollection<User>? Users { get; set; }
+
+    public int UsersCount => Users == null ? 0 : Users.Count;
 }
